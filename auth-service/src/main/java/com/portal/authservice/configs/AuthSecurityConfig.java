@@ -14,7 +14,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class AuthSecurityConfig {
 
-    private final String[] openUrls = {
+    private final AuthBeanConfig authBeanConfig;
+    private final JwtFilter jwtFilter;
+
+    // Publicly accessible endpoints
+    private static final String[] OPEN_URLS = {
             "/api/v1/auth/**",
             "/v3/api-docs/**",
             "/swagger-ui/**",
@@ -23,26 +27,27 @@ public class AuthSecurityConfig {
             "/webjars/**"
     };
 
-    private final String[] instructorUrls = {
+    // Instructor-specific protected endpoints
+    private static final String[] INSTRUCTOR_URLS = {
             "/api/v1/instructor/dashboard"
     };
 
-    private final String[] studentUrls = {
+    // Student-specific protected endpoints
+    private static final String[] STUDENT_URLS = {
             "/api/v1/student/dashboard"
     };
 
-    private final AuthBeanConfig authBeanConfig;
-    private final JwtFilter jwtFilter;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.csrf(csrf->csrf.disable());
-        httpSecurity.authorizeHttpRequests(auth-> { auth
-                .requestMatchers(openUrls).permitAll()
-                .requestMatchers(studentUrls).hasRole("STUDENT")
-                .requestMatchers(instructorUrls).hasRole("INSTRUCTOR")
-                .anyRequest().authenticated();
-        }).authenticationProvider(authBeanConfig.authenticationProvider())
+        httpSecurity
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for REST APIs
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(OPEN_URLS).permitAll()
+                        .requestMatchers(STUDENT_URLS).hasRole("STUDENT")
+                        .requestMatchers(INSTRUCTOR_URLS).hasRole("INSTRUCTOR")
+                        .anyRequest().authenticated()
+                )
+                .authenticationProvider(authBeanConfig.authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();

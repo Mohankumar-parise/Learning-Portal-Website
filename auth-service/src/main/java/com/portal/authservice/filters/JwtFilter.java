@@ -23,21 +23,38 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+
+        // Extract JWT token from the Authorization header
         String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer")) {
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String jwtToken = authHeader.substring(7);
+
+            // Validate token and extract username
             String username = jwtService.verifyTokenAndRetrieveUsername(jwtToken);
+
+            // Authenticate the user if the token is valid and no authentication exists
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 var userDetails = customUserDetailsService.loadUserByUsername(username);
-                var token = new UsernamePasswordAuthenticationToken(
+
+                var authenticationToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities()
                 );
-                token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(token);
+
+                authenticationToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
+
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
         }
 
-        filterChain.doFilter(request,response);
+        // Continue the filter chain
+        filterChain.doFilter(request, response);
     }
 }

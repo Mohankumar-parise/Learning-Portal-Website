@@ -18,7 +18,6 @@ public class AuthController {
 
     // http://localhost:8081/api/v1/auth/register
     @PostMapping("/register")
-    @ResponseBody
     public ResponseEntity<APIResponse<String>> register(@RequestBody RegisterDto registerDto) {
         APIResponse<String> response = authUserService.register(registerDto);
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(response.getStatusCode()));

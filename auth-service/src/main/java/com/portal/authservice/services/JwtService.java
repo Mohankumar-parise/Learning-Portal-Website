@@ -1,0 +1,39 @@
+package com.portal.authservice.services;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import org.springframework.stereotype.Service;
+
+import java.util.Date;
+
+@Service
+public interface JwtService {
+
+    String generateJwtToken(String username, String role);
+    String verifyTokenAndRetrieveUsername(String token);
+}
+
+@Service
+class JwtServiceImpls implements JwtService {
+
+    private static final String SECRETE_KEY = "My-Practice";
+    private static final long EXPIRATION_TIME = 8_64_00_000;
+
+    @Override
+    public String generateJwtToken(String username, String role) {
+        return JWT.create()
+                .withSubject(username)
+                .withClaim("role", role)
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .sign(Algorithm.HMAC256(SECRETE_KEY));
+    }
+
+    @Override
+    public String verifyTokenAndRetrieveUsername(String token) {
+        return JWT.require(Algorithm.HMAC256(SECRETE_KEY))
+                .build()
+                .verify(token)
+                .getSubject();
+    }
+}

@@ -23,13 +23,12 @@ public class AuthSecurityConfig {
             "/webjars/**"
     };
 
-    private final String[] adminUrls = {
-            // http://localhost:7070/api/v1/admin/panel
-            "/api/v1/admin/panel"
+    private final String[] instructorUrls = {
+            "/api/v1/instructor/dashboard"
     };
 
-    private final String[] userUrls = {
-            "/api/v1/welcome/message"
+    private final String[] studentUrls = {
+            "/api/v1/student/dashboard"
     };
 
     private final AuthBeanConfig authBeanConfig;
@@ -40,8 +39,8 @@ public class AuthSecurityConfig {
         httpSecurity.csrf(csrf->csrf.disable());
         httpSecurity.authorizeHttpRequests(auth-> { auth
                 .requestMatchers(openUrls).permitAll()
-                .requestMatchers(userUrls).hasRole("STUDENT")
-                .requestMatchers(adminUrls).hasRole("INSTRUCTOR")
+                .requestMatchers(studentUrls).hasRole("STUDENT")
+                .requestMatchers(instructorUrls).hasRole("INSTRUCTOR")
                 .anyRequest().authenticated();
         }).authenticationProvider(authBeanConfig.authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
